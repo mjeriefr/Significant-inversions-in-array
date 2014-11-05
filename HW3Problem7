@@ -1,0 +1,72 @@
+import copy
+
+#inList = [12,10,6,4,7,11,5,8,2,9,1,3]
+
+def test() :
+    f([12,10,6,4,7,11,5,8,2,9,1,3])
+    f([4,5,2,1,3])
+    f([5,3])
+    f([1,2])
+    f([2,1])
+    f([2])
+
+def f(list) : #Wrapper function that prints to the screen
+    countInversions = 0
+    if len(list) > 1 :
+        countInversions, returnList = inversions(list)
+    print "This list has", countInversions, "significant inversions --", (list)
+
+def inversions(list):
+    if len(list) <= 1 :
+        return 0
+    returnList = list
+    leftList = list[0 : len(list)/2]
+    rightList = list[len(list)/2 : len(list)+1]
+    leftInversions = 0
+    rightInversions = 0
+    if len(list[0 : len(list)/2]) > 1 :
+        leftInversions, leftList = inversions(list[0 : len(list)/2])
+    if len(list[len(list)/2 : len(list)+1]) > 1 :
+        rightInversions, rightList = inversions(list[len(list)/2 : len(list)+1])
+    mergeInversions, returnList = mergeAndCount(leftList + rightList)
+    countInversions = leftInversions + rightInversions + mergeInversions
+    list = returnList
+    return countInversions, list
+
+def mergeAndCount(list):
+    leftList = list[0 : len(list)/2]
+    rightList = list[len(list)/2 : len(list)+1]
+    #print "------------mergeAndCount", (leftList), "and", (rightList)
+    i=0
+    j=0
+    z=0 #iterator that is ahead of or equal to i. Marks which leftList(z) is twice rightList[j]. (Lazy computation)
+    inversions = 0
+    globalList = copy.deepcopy(list)
+    for k in range(len(leftList)+len(rightList)):
+        if i == len(leftList) :
+            #print "i == len(leftList)"
+            globalList[k] = rightList[j]
+            j += 1
+        elif j == len(rightList) :
+            #print "j == len(rightList). j =", j, "len(rightList) =", len(rightList)
+            globalList[k] = leftList[i]
+            i += 1
+        elif leftList[i] <= rightList[j] :
+            #print leftList[i], "<=", rightList[j]
+            globalList[k] = leftList[i]
+            i += 1
+        else :
+            #print leftList[i], ">", rightList[j], "*2", "|| rightList[", j, "] =", rightList[j]
+            globalList[k] = rightList[j]
+            if z < i :
+                z = i
+            #print (leftList), "in", rightList[j]
+            for zTemp in range(z, len(leftList)) :  #iterate to end of the leftList
+                #print "yup"
+                if leftList[zTemp] > rightList[j]*2 :  #Only count 'significant' inversions >x*2
+                    inversions = inversions + len(leftList) - zTemp
+                    z = zTemp
+                    break
+            j += 1
+        #print "globalList =", globalList
+    return (inversions, globalList)
